@@ -1,0 +1,20 @@
+{
+  "tasks": {
+    "dev": "deno run -A --node-modules-dir=auto npm:astro dev",
+    "start": "deno run -A --node-modules-dir=auto npm:astro dev",
+    "build": "deno run -A --node-modules-dir=auto npm:astro check && deno run -A --node-modules-dir=auto npm:astro build",
+    "preview": "deno run -A --node-modules-dir=auto npm:astro preview"
+  },
+  "imports": {
+    "astro": "npm:astro@^4.16.14",
+    "@astrojs/starlight": "npm:@astrojs/starlight@^0.28.4",
+    "@astrojs/check": "npm:@astrojs/check@^0.9.4",
+    "sharp": "npm:sharp@^0.33.5"
+  },
+  "nodeModulesDir": "auto",
+  "compilerOptions": {
+    "lib": ["ES2022", "DOM"],
+    "jsx": "react-jsx",
+    "jsxImportSource": "astro"
+  }
+}

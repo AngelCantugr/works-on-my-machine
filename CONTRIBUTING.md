@@ -99,19 +99,14 @@ function greet(name) {
 
 ## Local Development
 
-1. Install dependencies:
+1. Start dev server:
    ```bash
-   npm install
+   deno task dev
    ```
 
-2. Start dev server:
-   ```bash
-   npm run dev
-   ```
+2. View at: http://localhost:4321/works-on-my-machine
 
-3. View at: http://localhost:4321/works-on-my-machine
-
-4. Make your changes and see them live!
+3. Make your changes and see them live!
 
 ## Publishing
 

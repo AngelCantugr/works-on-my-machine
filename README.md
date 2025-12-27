@@ -10,6 +10,7 @@ This is my technical blog where I share what I know, learn, and experiment with 
 
 - **[Astro](https://astro.build)** - Modern web framework
 - **[Starlight](https://starlight.astro.build)** - Documentation theme for Astro
+- **[Deno](https://deno.com)** - Modern JavaScript/TypeScript runtime with built-in TypeScript support
 - **GitHub Pages** - Hosting
 - **GitHub Actions** - Automated deployment
 
@@ -17,8 +18,7 @@ This is my technical blog where I share what I know, learn, and experiment with 
 
 ### Prerequisites
 
-- Node.js 18+ or 20+
-- npm
+- Deno 2.x or later
 
 ### Setup
 
@@ -28,22 +28,17 @@ git clone https://github.com/AngelCantugr/works-on-my-machine.git
 cd works-on-my-machine
 ```
 
-2. Install dependencies:
+2. Start the development server:
 ```bash
-npm install
+deno task dev
 ```
 
-3. Start the development server:
-```bash
-npm run dev
-```
-
-4. Open your browser and visit `http://localhost:4321`
+3. Open your browser and visit `http://localhost:4321`
 
 ## Building for Production
 
 ```bash
-npm run build
+deno task build
 ```
 
 The built site will be in the `dist/` directory.
@@ -106,8 +101,7 @@ Your reference content here...
 │           ├── guides/         # Guide articles
 │           └── reference/      # Reference materials
 ├── astro.config.mjs            # Astro configuration
-├── package.json
-└── tsconfig.json
+└── deno.json                   # Deno configuration and tasks
 ```
 
 ## License

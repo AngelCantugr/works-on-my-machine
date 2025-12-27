@@ -9,6 +9,7 @@ Thanks for visiting **Works On My Machine**! This blog is built with:
 
 - **Astro** - A modern web framework
 - **Starlight** - Astro's documentation theme
+- **Deno** - Modern JavaScript/TypeScript runtime with built-in TypeScript support
 - **GitHub Pages** - For hosting
 - **GitHub Actions** - For automated deployment
 

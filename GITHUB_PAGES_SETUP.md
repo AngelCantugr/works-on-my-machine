@@ -32,7 +32,7 @@ After the workflow completes (usually 1-2 minutes):
 ## Automatic Deployments
 
 From now on, every time you push to `main`, the blog will automatically:
-1. Build using Astro
+1. Build using Astro with Deno
 2. Run checks and tests
 3. Deploy to GitHub Pages
 

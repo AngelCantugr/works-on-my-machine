@@ -2,11 +2,9 @@
 dist/
 .output/
 
-# generated types
-.astro/
-
 # dependencies
 node_modules/
+.snowpack/
 
 # Deno cache
 .deno/
@@ -24,6 +22,11 @@ pnpm-debug.log*
 # macOS-specific files
 .DS_Store
 
-# IDEs
+# Local Netlify folder
+.netlify
+netlify
+
+.astro
+.idea
 .vscode/
-.idea/
+.vercel

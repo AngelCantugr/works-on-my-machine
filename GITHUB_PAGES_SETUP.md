@@ -46,7 +46,7 @@ If you don't see the "GitHub Actions" option in the Pages settings:
 ## Adding Content
 
 To add new blog posts:
-1. Create `.md` or `.mdx` files in `src/content/docs/guides/` or `src/content/docs/reference/`
-2. Add frontmatter with `title` and `description`
+1. Create `.mdx` or `.mdoc` files in `src/content/blog/`
+2. Add frontmatter with `title`, `description`, and `date`
 3. Push to `main` branch
 4. The blog will automatically update!

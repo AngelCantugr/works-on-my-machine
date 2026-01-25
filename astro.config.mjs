@@ -1,29 +1,53 @@
-import { defineConfig } from 'astro/config';
-import starlight from '@astrojs/starlight';
+import path, { dirname } from 'path';
+import { fileURLToPath } from 'url';
+import svelte from '@astrojs/svelte';
+import tailwind from '@astrojs/tailwind';
+import sitemap from '@astrojs/sitemap';
+import mdx from '@astrojs/mdx';
+import { defineConfig } from "astro/config";
+import markdoc from "@astrojs/markdoc";
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+import remarkCodeTitles from 'remark-code-titles'
+
+// Full Astro Configuration API Documentation:
+// https://docs.astro.build/reference/configuration-reference
 
 // https://astro.build/config
-export default defineConfig({
-  site: 'https://angelcantugr.github.io',
+export default defineConfig( /** @type {import('astro').AstroUserConfig} */{
+  output: 'static',
+  site: 'https://angelcantugr.github.io', // Your public domain, e.g.: https://my-site.dev/. Used to generate sitemaps and canonical URLs.
   base: '/works-on-my-machine',
+  server: {
+    // port: 4321, // The port to run the dev server on.
+  },
+  markdown: {
+    syntaxHighlight: 'shiki',
+    shikiConfig: {
+      theme: 'css-variables',
+    },
+    remarkPlugins: [
+      remarkCodeTitles
+    ]
+  },
   integrations: [
-    starlight({
-      title: 'Works On My Machine',
-      description: 'A tech blog to share what I know, learn, and experiment with',
-      social: {
-        github: 'https://github.com/AngelCantugr/works-on-my-machine',
-      },
-      sidebar: [
-        {
-          label: 'Guides',
-          items: [
-            { label: 'Getting Started', slug: 'guides/getting-started' },
-          ],
-        },
-        {
-          label: 'Reference',
-          autogenerate: { directory: 'reference' },
-        },
-      ],
-    }),
+    mdx(), 
+    markdoc(),
+    svelte(), 
+    tailwind({
+      applyBaseStyles: false,
+    }), 
+    sitemap(),
   ],
+  vite: {
+    plugins: [],
+    resolve: {
+      alias: {
+        $: path.resolve(__dirname, './src')
+      }
+    },
+    optimizeDeps: {
+      allowNodeBuiltins: true
+    }
+  }
 });

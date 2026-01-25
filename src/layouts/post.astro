@@ -53,9 +53,9 @@ const base = import.meta.env.BASE_URL
                     </span>
                     <span class="post__stats">
                         { USE_VIEW_STATS && ` | `}
-                        { USE_VIEW_STATS && 
+                        { USE_VIEW_STATS &&
                             <iconify-icon class="w-5 h-5 inline-block" icon="mdi:eye"></iconify-icon>
-                            <PostStats slug={meta?.slug} client:load /> 
+                            <PostStats slug={meta?.slug} client:load />
                         }
                         <!-- | <iconify-icon class="w-5 h-5 inline-block" icon="mdi:clock"></iconify-icon> 2 mins -->
                     </span>
@@ -104,7 +104,7 @@ const base = import.meta.env.BASE_URL
                 <br/>
             }
             {
-                meta?.collection && meta?.id && 
+                meta?.collection && meta?.id &&
                     <EditUrl label=" Suggest changes on GitHub" editUrl={`${SITE.githubUrl}/tree/main/src/content/${meta?.collection}/${meta?.id}`}/>
             }
         </div>

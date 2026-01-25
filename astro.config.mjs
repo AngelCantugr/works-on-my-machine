@@ -1,5 +1,5 @@
-import path, { dirname } from 'path';
-import { fileURLToPath } from 'url';
+import path, { dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import svelte from '@astrojs/svelte';
 import tailwind from '@astrojs/tailwind';
 import sitemap from '@astrojs/sitemap';
@@ -36,8 +36,11 @@ export default defineConfig( /** @type {import('astro').AstroUserConfig} */{
     svelte(), 
     tailwind({
       applyBaseStyles: false,
-    }), 
-    sitemap(),
+    }),
+    // sitemap disabled temporarily due to Deno compatibility issues 
+    // sitemap({
+    //   filter: (page) => !page.includes('/drafts/')
+    // }),
   ],
   vite: {
     plugins: [],

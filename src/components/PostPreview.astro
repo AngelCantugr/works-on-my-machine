@@ -1,6 +1,7 @@
 ---
 import type { CollectionEntry } from 'astro:content'
 import { getMonthName } from '$/utils'
+import { joinPath } from '$/utils/path'
 
 interface Props {
     post: CollectionEntry<'blog'>,
@@ -19,7 +20,7 @@ const base = import.meta.env.BASE_URL
     </div>
     <div class="flex-1">
         <h4 class="post-preview__title dark:text-theme-dark-primary">
-            <a href={`${base}blog/${slug}`} title={post.title}>{post.title}</a>
+            <a href={joinPath(base, `/blog/${slug}`)} title={post.title}>{post.title}</a>
         </h4>
         <p class="post-preview__desc">
             {post.description}

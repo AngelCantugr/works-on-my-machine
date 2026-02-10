@@ -1,6 +1,7 @@
 ---
 import { toTitleCase } from '$/utils'
 import { NAV_ITEMS } from '$/config'
+import { joinPath } from '$/utils/path'
 
 const base = import.meta.env.BASE_URL
 ---
@@ -8,7 +9,7 @@ const base = import.meta.env.BASE_URL
     <ul class="nav-list dark:text-theme-dark-secondary" transition:animate="fade">
          {
             Object.keys(NAV_ITEMS).map(navItemKey => {
-                const href = `${base}${NAV_ITEMS[navItemKey].path}`.replace(/\/$/, '') || '/'
+                const href = joinPath(base, NAV_ITEMS[navItemKey].path)
                 const normalizedPathname = Astro.url.pathname.replace(/\/$/, '') || '/'
                 const normalizedBase = base.replace(/\/$/, '') || '/'
                 const isActive = normalizedPathname === (normalizedBase + NAV_ITEMS[navItemKey].path).replace(/\/$/, '') || (normalizedPathname === '/' && normalizedBase + NAV_ITEMS[navItemKey].path === '/')

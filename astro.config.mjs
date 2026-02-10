@@ -18,7 +18,7 @@ export default defineConfig(
   /** @type {import('astro').AstroUserConfig} */ {
     output: "static",
     site: "https://blog.angelcantugr.dev", // Your public domain, e.g.: https://my-site.dev/. Used to generate sitemaps and canonical URLs.
-    base: "/", // Use "/" for custom domains, not a subpath
+    base: "", // Empty string for custom domains to avoid double slashes
     server: {
       // port: 4321, // The port to run the dev server on.
     },

@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://angelcantugr.github.io/works-on-my-machine/sitemap-index.xml
+Sitemap: https://blog.angelcantugr.dev/sitemap-index.xml

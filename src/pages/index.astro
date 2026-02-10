@@ -6,6 +6,7 @@ import DefaultPageLayout from '$/layouts/default.astro'
 import PostPreviewList from '$/components/PostPreviewList.astro'
 import Prose from '$/components/Prose.astro'
 import { Content as AboutAstroInk } from './_astro-ink.md'
+import { assetBase } from '$/utils/path'
 
 
 const title = 'Home'
@@ -13,12 +14,13 @@ const description = 'A tech blog to share what I know, learn, and experiment wit
 
 const posts = await getCollection('blog')
 const base = import.meta.env.BASE_URL
+const assetUrl = assetBase(base)
 ---
 <DefaultPageLayout content={{ title, description }} showPageHeader={false}>
     <div class="hero ">
         <div class="hero__face">
             <div class="author-card">
-                <img src={`${base}/assets/coffee-relaxed.png`} alt="Relaxed coffee illustration" title="Coffee, relaxed" />
+                <img src={`${assetUrl}/assets/coffee-relaxed.png`} alt="Relaxed coffee illustration" title="Coffee, relaxed" />
             </div>
         </div>
         <div class="hero__says">

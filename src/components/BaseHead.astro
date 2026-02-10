@@ -2,6 +2,7 @@
 import "@fontsource/fira-sans";
 import { ViewTransitions } from 'astro:transitions';
 import { SITE } from "$/config";
+import { assetBase } from "$/utils/path";
 import "../styles/global.css";
 
 export type Props = {
@@ -13,6 +14,7 @@ export type Props = {
 
 const { title = SITE.title, description, permalink, image } = Astro.props;
 const base = import.meta.env.BASE_URL;
+const assetUrl = assetBase(base);
 ---
 
 <!-- Use Google Fonts, if you don't wanna prefer a self-hosted version --><!-- <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -26,22 +28,22 @@ const base = import.meta.env.BASE_URL;
 {description && <meta name="description" content={description} />}
 <ViewTransitions />
 
-<link rel="apple-touch-icon" sizes="180x180" href={`${base}/apple-touch-icon.png`} />
-<link rel="icon" type="image/png" sizes="32x32" href={`${base}/assets/logo.png`} />
+<link rel="apple-touch-icon" sizes="180x180" href={`${assetUrl}/apple-touch-icon.png`} />
+<link rel="icon" type="image/png" sizes="32x32" href={`${assetUrl}/assets/logo.png`} />
 <link
   rel="shortcut icon"
   type="image/png"
   sizes="16x16"
-  href={`${base}/assets/logo.png`}
+  href={`${assetUrl}/assets/logo.png`}
 />
-<link rel="icon" type="image/svg+xml" href={`${base}/assets/logo.svg`} />
-<link rel="sitemap" href={`${base}/sitemap-index.xml`} />
-<link rel="manifest" href={`${base}/site.webmanifest`} />
-<link rel="mask-icon" href={`${base}/assets/logo.svg`} color="#5bbad5" />
+<link rel="icon" type="image/svg+xml" href={`${assetUrl}/assets/logo.svg`} />
+<link rel="sitemap" href={`${assetUrl}/sitemap-index.xml`} />
+<link rel="manifest" href={`${assetUrl}/site.webmanifest`} />
+<link rel="mask-icon" href={`${assetUrl}/assets/logo.svg`} color="#5bbad5" />
 
 <meta http-equiv="X-UA-Compatible" content="IE=edge" />
 <meta name="msapplication-TileColor" content="#da532c" />
-<meta name="msapplication-config" content={`${base}/browserconfig.xml`} />
+<meta name="msapplication-config" content={`${assetUrl}/browserconfig.xml`} />
 <meta name="theme-color" content="#ffffff" />
 
 <!-- Open Graph Tags (Facebook) -->

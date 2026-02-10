@@ -28,10 +28,10 @@ export const SITE = {
   name: "Works On My Machine",
   title: "Works On My Machine",
   description: "A tech blog to share what I know, learn, and experiment with",
-  url: "https://angelcantugr.github.io/works-on-my-machine",
+  url: "https://blog.angelcantugr.dev",
   githubUrl: "https://github.com/AngelCantugr",
   listDrafts: true,
-  image: "https://angelcantugr.github.io/works-on-my-machine/assets/logo.svg",
+  image: "https://blog.angelcantugr.dev/assets/logo.svg",
   // YT video channel Id (used in media.astro)
   ytChannelId: "",
   // Optional, user/author settings (example)

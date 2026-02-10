@@ -17,8 +17,8 @@ import remarkCodeTitles from "remark-code-titles";
 export default defineConfig(
   /** @type {import('astro').AstroUserConfig} */ {
     output: "static",
-    site: "https://angelcantugr.github.io", // Your public domain, e.g.: https://my-site.dev/. Used to generate sitemaps and canonical URLs.
-    base: "/works-on-my-machine",
+    site: "https://blog.angelcantugr.dev", // Your public domain, e.g.: https://my-site.dev/. Used to generate sitemaps and canonical URLs.
+    base: "/", // Use "/" for custom domains, not a subpath
     server: {
       // port: 4321, // The port to run the dev server on.
     },

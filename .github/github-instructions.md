@@ -36,7 +36,7 @@ deno task preview      # Preview production build
    authorTwitter: ""
    category: blog
    ---
-   
+
    Your content here...
    ```
 
@@ -148,4 +148,3 @@ git push origin main             # Triggers auto-deploy of revert
 ---
 
 *Last Updated: February 10, 2026*
-

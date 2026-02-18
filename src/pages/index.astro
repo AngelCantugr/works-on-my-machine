@@ -23,7 +23,7 @@ const assetUrl = assetBase(base)
                 <img src={`${assetUrl}/assets/thinking-idea.png`} alt="Person thinking with ideas illustration" title="Thinking and ideas" />
             </div>
         </div>
-        <div class="hero__says">
+        <div class="hero__says home-prose">
             <Prose>
                 <AboutAstroInk/>
             </Prose>
@@ -45,6 +45,9 @@ const assetUrl = assetBase(base)
     }
     .hero__says {
         @apply flex-1 text-center md:text-left
+    }
+    :global(.home-prose .prose) {
+        line-height: 1.3;
     }
     .author-card {
         @apply  h-48 w-48 md:h-56 bg-theme-primary dark:bg-theme-dark-primary rounded-full md:rounded-md shadow-lg

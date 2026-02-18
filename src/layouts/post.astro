@@ -91,13 +91,12 @@ const base = import.meta.env.BASE_URL
                         <p class="author-card__bio">{ SITE.authorBio }</p>
                         <br/>
                         {
-                            USE_SUBSCRIPTION ?
+                            USE_SUBSCRIPTION &&
                             <form action="" class="subscription-form">
                                 <label for="email"></label>
                                 <input type="email" name="email" class="flex-grow border-0 text-theme-accent-gray-dark" required="true">
                                 <button type="submit">Subscribe</button>
-                            </form> :
-                            <a class="author-card__follow-btn button" target="_blank" href={`https://twitter.com/intent/follow?screen_name=${AUTHOR_TWITTER}`}><iconify-icon class="w-5 h-5 inline-block" icon="mdi:twitter"></iconify-icon> Follow on Twitter</a>
+                            </form>
                         }
                     </div>
                 </div>
@@ -118,7 +117,7 @@ const base = import.meta.env.BASE_URL
         @apply text-5xl font-extrabold text-theme-primary dark:text-theme-dark-primary
     }
     .post__desc {
-        @apply text-gray-500 dark:text-gray-100 flex justify-center text-left md:flex-none md:justify-start
+        @apply text-gray-500 dark:text-gray-100 flex justify-center text-left md:flex-none md:justify-start text-[0.7em]
     }
     .post__author {
         @apply no-underline dark:text-white hover:text-theme-primary

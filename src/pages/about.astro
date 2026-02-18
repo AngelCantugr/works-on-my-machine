@@ -1,0 +1,73 @@
+---
+export const prerender = true
+
+import DefaultPageLayout from '$/layouts/default.astro'
+import Prose from '$/components/Prose.astro'
+import { assetBase } from '$/utils/path'
+
+const title = 'About'
+const description = 'Notes, experiments, and lessons learned from building software.'
+
+const base = import.meta.env.BASE_URL
+const assetUrl = assetBase(base)
+---
+
+<DefaultPageLayout content={{ title, description }} showPageHeader={false}>
+    <div class="hero">
+        <div class="hero__face">
+            <div class="author-card">
+                <img src={`${assetUrl}/assets/coffee-relaxed.png`} alt="Relaxed coffee illustration" title="Coffee, relaxed" />
+            </div>
+        </div>
+        <div class="hero__says">
+            <Prose>
+                <h1>About</h1>
+
+                <p>I'm Angel Cantu, a Software Engineer.</p>
+
+                <p>I built Works on My Machine as a place to document what I'm building and learning in public. This site is my running log of experiments, technical lessons, false starts, and progress over time.</p>
+
+                <p>I like working close to the problem: build something, test it, break it, understand it, improve it. When a challenge shows up, I treat it as feedback. Most of my growth has come from that loop.</p>
+
+                <p>I write about:</p>
+
+                <ul>
+                    <li>Technology and software engineering</li>
+                    <li>Things I'm actively learning</li>
+                    <li>Projects I'm building</li>
+                    <li>Systems, habits, and decisions that help me keep momentum</li>
+                </ul>
+
+                <p>I also care about making technical ideas practical and accessible. If I learn something useful, I want to contribute it back in a way that helps someone else build faster, think clearer, or avoid a mistake.</p>
+
+                <p>You'll find a mix of:</p>
+
+                <ul>
+                    <li>Technical posts</li>
+                    <li>Learning-in-public notes</li>
+                    <li>Journal-style reflections from ongoing work</li>
+                </ul>
+
+                <p>The name Works on My Machine is intentional. It captures the spirit of this blog: real-world building is messy, iterative, and full of edge cases. I'm here for that process.</p>
+            </Prose>
+        </div>
+    </div>
+</DefaultPageLayout>
+
+<style>
+    .hero {
+        @apply flex gap-8 md:gap-16 items-start
+    }
+    .hero__face {
+        @apply shrink-0
+    }
+    .author-card {
+        @apply sticky top-20
+    }
+    .author-card img {
+        @apply w-48 h-48 md:w-64 md:h-64 rounded-lg shadow-lg
+    }
+    .hero__says {
+        @apply flex-1 min-w-0
+    }
+</style>

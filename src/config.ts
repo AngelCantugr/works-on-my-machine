@@ -30,6 +30,7 @@ export const SITE = {
   description: "A tech blog to share what I know, learn, and experiment with",
   url: "https://blog.angelcantugr.dev",
   githubUrl: "https://github.com/AngelCantugr",
+  linkedinUrl: "https://www.linkedin.com/in/angelcantugr",
   listDrafts: true,
   image: "https://blog.angelcantugr.dev/assets/logo.svg",
   // YT video channel Id (used in media.astro)

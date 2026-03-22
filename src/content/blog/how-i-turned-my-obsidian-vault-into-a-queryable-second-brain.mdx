@@ -1,0 +1,320 @@
+---
+title: "How I Turned My Obsidian Vault Into a Queryable Second Brain"
+description: "The problem with notes that hold knowledge but fail at retrieval, and the local-first RAG system I built to fix it."
+tags: ["ai", "rag", "obsidian", "mcp", "python"]
+author: "Angel Cantu"
+authorTwitter: ""
+date: "2026-03-22T10:00:00.000Z"
+category: "tools"
+---
+
+My notes had a usefulness problem.
+
+I was capturing ideas, architecture decisions, debugging notes, and half-finished thoughts inside Obsidian, but retrieval was still too manual. The information was technically there, yet in the moment I needed it, it behaved more like cold storage than active memory.
+
+That became the anchor for this project:
+
+> **A second brain is only useful if it can give context back fast enough to change a decision.**
+
+So I built [Obsidian RAG MCP](https://github.com/AngelCantugr/second-brain): a local-first system that indexes an Obsidian vault, supports hybrid retrieval, and exposes the results through MCP so an AI client can query my notes as tools.
+
+This post covers the problem, the constraints that mattered, and the shape of the solution, with code snippets you can use if you want to try the approach yourself.
+
+## The Real Problem Was Not Storage
+
+I did not need another place to write.
+
+I needed a way to answer questions like these without opening ten folders and guessing filenames:
+
+- What did I write about incident response last month?
+- Which notes mention a specific architecture tradeoff?
+- Where did I already sketch a solution that I forgot existed?
+
+Plain text search helps, but it breaks down fast when the wording in my question does not match the wording in my notes. Semantic search helps, but on its own it can miss exact strings, names, and terms that matter.
+
+That pushed me toward a combined approach instead of choosing one retrieval strategy and pretending it solves everything.
+
+## The Constraints That Shaped the Design
+
+I wanted the system to be useful in real day-to-day work, not just impressive in a demo. That led to a few non-negotiable constraints.
+
+### 1. It had to stay local-first
+
+My notes contain personal reflections, learning projects, and rough thinking. Reprocessing them every time I start an AI session would be expensive and unnecessary.
+
+So the system keeps embeddings and storage on-device:
+
+- embeddings via Ollama
+- vector storage via embedded Qdrant
+- keyword search via SQLite FTS5
+
+That gave me the privacy model and low-cost setup I wanted without turning the project into infrastructure theater.
+
+### 2. It had to support messy, real note collections
+
+Obsidian vaults are not pristine knowledge bases. They contain templates, partial notes, junk folders, old experiments, and formatting differences.
+
+That meant the indexing pipeline needed configurable chunking, exclusions, and incremental sync rather than a one-shot import.
+
+### 3. It had to be usable from the tools I already touch
+
+If the only interface was a standalone script, I would use it less. Exposing the vault through MCP meant the same knowledge base could be queried from clients like Claude Desktop or VS Code Copilot.
+
+That mattered because retrieval is most valuable when it appears inside the workflow where the question already exists.
+
+## The Shape of the Solution
+
+At a high level, the system does four things:
+
+1. Parse markdown notes and frontmatter.
+2. Chunk note content into retrievable segments.
+3. Index those chunks into both vector and keyword stores.
+4. Merge results and expose them through CLI commands and MCP tools.
+
+The important part is not that it uses RAG. The important part is that it uses **hybrid retrieval**.
+
+Hybrid retrieval combines:
+
+- semantic similarity for concept-level matches
+- full-text search for exact phrases, names, and technical terms
+
+Those result sets are merged with Reciprocal Rank Fusion, which is a pragmatic way to let both retrieval strategies contribute signal.
+
+> **Key idea:** exact match and semantic match fail differently. Combining them is more reliable than betting on either one alone.
+
+Here is a trimmed version of the fusion logic:
+
+```python
+from collections import defaultdict
+from obsidian_rag.models import RetrievalHit
+
+
+def reciprocal_rank_fusion(
+  semantic_hits: list[RetrievalHit],
+  keyword_hits: list[RetrievalHit],
+  k: int = 60,
+) -> list[RetrievalHit]:
+  score_map = defaultdict(float)
+  exemplar: dict[str, RetrievalHit] = {}
+
+  for idx, hit in enumerate(semantic_hits, start=1):
+    score_map[hit.chunk_id] += 1.0 / (k + idx)
+    exemplar.setdefault(hit.chunk_id, hit)
+
+  for idx, hit in enumerate(keyword_hits, start=1):
+    score_map[hit.chunk_id] += 1.0 / (k + idx)
+    exemplar.setdefault(hit.chunk_id, hit)
+
+  merged = sorted(score_map.items(), key=lambda item: item[1], reverse=True)
+
+  output = []
+  for chunk_id, score in merged:
+    base = exemplar[chunk_id]
+    output.append(
+      RetrievalHit(
+        chunk_id=chunk_id,
+        score=score,
+        source="hybrid",
+        text=base.text,
+        metadata=base.metadata,
+      )
+    )
+
+  return output
+```
+
+RRF works because it rewards chunks that rank well in either retrieval method without forcing both methods to agree.
+
+That is what matters in practice:
+
+- semantic hits and keyword hits are ranked separately
+- each ranking contributes partial signal
+- the merged output rewards chunks that appear near the top of either list
+
+That makes hybrid retrieval more resilient than either strategy on its own.
+
+## The Smallest Useful Example
+
+If you want the shortest path to feeling the idea, the CLI is the best starting point.
+
+Initialize a vault, index it, then query it:
+
+```bash
+cd ~/my-obsidian-vault
+obsidian-rag init
+
+# First-time index
+obsidian-rag sync --mode full
+
+# Ask a question against your notes
+obsidian-rag query "What are my notes on system design?"
+```
+
+That tiny loop is the whole point of the project. Your notes stop being a passive archive and start acting more like a retrievable working memory.
+
+If you want raw retrieval results instead of an answer draft, use search directly:
+
+```bash
+obsidian-rag search "async rust patterns"
+```
+
+This is one of the reasons I like the system design. It separates two needs cleanly:
+
+- `search` for inspection and debugging retrieval quality
+- `query` for an answer draft with citations
+
+Here is the retrieval path in one place:
+
+```python
+def search(self, query: str, filters: dict | None = None, top_k: int = 10) -> dict:
+  normalized = normalize_query(query)
+  effective_filters = dict(filters or {})
+  query_vec = self.embedder.embed([normalized])[0]
+
+  semantic_hits = [
+    hit
+    for hit in self.vector_store.search(query_vec, limit=top_k * 3)
+    if matches_filters(hit.metadata, effective_filters)
+  ][:top_k]
+
+  keyword_hits = self.keyword_store.search(
+    normalized,
+    limit=top_k,
+    filters=effective_filters,
+  )
+
+  merged = reciprocal_rank_fusion(semantic_hits, keyword_hits)
+
+  return {
+    "query": query,
+    "hits": [
+      {
+        "chunk_id": hit.chunk_id,
+        "score": hit.score,
+        "source": hit.source,
+        "text": hit.text,
+        "metadata": hit.metadata,
+      }
+      for hit in merged[:top_k]
+    ],
+  }
+```
+
+This snippet compresses the retrieval architecture into one readable unit. A reader can see query normalization, embedding, semantic retrieval, keyword retrieval, filtering, and fusion without having to inspect the whole codebase.
+
+## The Configuration Tells the Story
+
+One of the most revealing parts of a tool is its config. It tells you what the author assumed would matter in practice.
+
+This generated default configuration is a good summary of the project's priorities:
+
+```toml
+# Path to your Obsidian vault (or any markdown directory)
+vault_path = "$CWD"
+
+# Local storage - relative paths resolve from the config file's directory
+qdrant_path     = "$CWD/data/qdrant"
+fts_path        = "$CWD/data/fts.sqlite"
+sync_state_path = "$CWD/data/sync_state.sqlite"
+
+# Qdrant collection name
+collection_name = "obsidian_chunks"
+
+# Ollama settings
+ollama_url      = "http://127.0.0.1:11434"
+embedding_model = "nomic-embed-text"
+
+# Chunking
+chunk_size    = 500
+chunk_overlap = 80
+
+# Auto-watch vault for file changes
+watch_enabled = true
+
+# Ignore noise
+exclude_globs = [".obsidian/**", ".git/**", "Templates/**"]
+
+# Max chunks returned per query
+max_context_chunks = 8
+
+# Privacy controls
+redact_patterns = []
+```
+
+There are three ideas embedded in that snippet:
+
+- the system should run on a normal machine
+- it should tolerate real-world vault noise
+- privacy should be considered before indexing, not after
+
+That last point matters more than it first appears. If sensitive patterns need redaction, the right time to handle that is before text lands in the index.
+
+## Why MCP Was Worth Adding
+
+The CLI already made the project useful. MCP made it fit into a larger workflow.
+
+Once the vault is exposed as tools, an AI client can ask for note context, run retrieval, or trigger sync without me manually switching mental modes. Instead of copying text out of Obsidian into another interface, the retrieval layer comes to the question.
+
+Here is the shape of the VS Code configuration:
+
+```json
+{
+  "servers": {
+    "obsidian-rag": {
+      "type": "stdio",
+      "command": "obsidian-rag-mcp",
+      "args": ["--config", "/absolute/path/to/your/vault/rag_config.toml"]
+    }
+  }
+}
+```
+
+That is the bridge between "I have notes" and "my tools can use those notes when I am working."
+
+It exposes a set of focused operations instead of one vague magic endpoint:
+
+- `rag.query`
+- `rag.search`
+- `rag.note_context`
+- `rag.sync`
+- `rag.status`
+- `rag.health`
+
+I like that interface because it keeps the system inspectable. If retrieval quality is off, I can debug it. If sync is stale, I can see it. If dependencies are broken, there is a health check.
+
+## What This Solves for Me
+
+This project does not replace thinking. It reduces the friction between a question and the parts of my past thinking that are still useful.
+
+That matters because a lot of engineering work is not invention from scratch. It is reconstruction: finding a previous decision, rediscovering an old pattern, or recovering context you already earned.
+
+For me, the practical value looks like this:
+
+- fewer repeated searches through folders
+- better reuse of buried notes
+- faster recall of prior experiments and architecture ideas
+- a tighter loop between note-taking and execution
+
+That is the real outcome I wanted. Not "AI over notes" as a slogan, but a system that makes accumulated context available when it can actually help.
+
+## If You Want to Try the Idea
+
+You can start with the repo here: [AngelCantugr/second-brain](https://github.com/AngelCantugr/second-brain)
+
+The shortest path is:
+
+```bash
+pipx install git+https://github.com/AngelCantugr/second-brain.git
+cd ~/my-obsidian-vault
+obsidian-rag init
+obsidian-rag sync --mode full
+obsidian-rag query "What did I write about retrieval pipelines?"
+```
+
+Even if you never adopt the exact stack, I think the pattern is worth keeping:
+
+1. Treat your notes as a system, not just a folder.
+2. Optimize retrieval, not just capture.
+3. Expose the knowledge where your decisions actually happen.
+
+> **A second brain is not measured by how much it stores. It is measured by how quickly it returns the right context when you need it.**

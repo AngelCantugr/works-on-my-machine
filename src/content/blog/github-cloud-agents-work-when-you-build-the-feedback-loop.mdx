@@ -12,13 +12,15 @@ After three or four days of sustained use, the [GitHub Copilot cloud agent](http
 
 The agent was not broken. The setup was.
 
-I would assign it a GitHub issue, let it run for a while, watch it push a branch, open a PR, and announce it was done. The diff was there. The description looked reasonable. But the lint was off, the tests had never been run, and the acceptance criteria were implemented in a way that suggested the agent had never actually re-read them. The troubling part was not the bad code. It was the **confidence**. The agent was not signaling uncertainty. It was not asking for help. It was exiting the task having decided, on its own, that it was finished. Because the asynchronous cloud agent runs in its own isolated environment, it does not stop to ask for permissions or additional details while it works.
+I would assign it a GitHub issue, let it run for a while, watch it push a branch, open a PR, and announce it was done. The diff was there. The description looked reasonable. But the lint was off, the tests had never been run, and the acceptance criteria were implemented in a way that suggested the agent had never actually re-read them. The troubling part was not the bad code. It was the **confidence**. The agent was not signaling uncertainty. It was not asking for help. It was exiting the task having decided, on its own, that it was finished.
+
+_The cloud agent runs asynchronously in its own isolated environment. There is nobody for it to stop and ask, and it does not._
 
 That was the pattern I needed to understand before anything else improved.
 
 > **A cloud agent without a real feedback loop does not fail loudly. It exits with false confidence.**
 
-This post is about what I did to improve the results — not through better prompting, but by building the environment, tools, hooks, and signals that let the agent prove its own correctness before it walked away from the task.
+This post is about how I fixed it — not with better prompts, but by building the environment, tools, hooks, and signals that let the agent prove its own correctness before walking away.
 
 ## The Real Problem Was Not the Prompt
 
@@ -58,7 +60,7 @@ Here is the stack I landed on, roughly in order of how much each one changed the
 
 [GitHub Copilot's repository instructions file](https://docs.github.com/en/copilot/how-tos/copilot-on-github/customize-copilot/add-custom-instructions/add-repository-instructions) — `.github/copilot-instructions.md` — is the obvious starting point, but it is not enough on its own. Repository-wide instructions tell the agent the general rules of the road, but they cannot capture the specifics that only matter in certain folders.
 
-[Path-specific custom instructions](https://github.blog/changelog/2025-07-23-github-copilot-coding-agent-now-supports-instructions-md-custom-instructions/) closed that gap. These live in `.github/instructions/*.instructions.md`, and each file's YAML frontmatter uses an `applyTo` glob so the agent reads different guidance depending on where it's editing. The conventions for frontend code are not the conventions for service code. The rules around one integration surface are not the rules around core application wiring. Splitting instructions by path is how a senior engineer actually navigates the same codebase.
+[Path-specific custom instructions](https://github.blog/changelog/2025-07-23-github-copilot-coding-agent-now-supports-instructions-md-custom-instructions/) closed that gap. These live in `.github/instructions/*.instructions.md`, and each file's YAML frontmatter uses an `applyTo` glob so the agent reads different guidance depending on where it's editing. Frontend conventions are not service conventions. An integration surface plays by different rules than the core wiring underneath it. A senior engineer keeps these distinctions in their head; the agent will not, unless you put them in the file.
 
 If your repo has meaningfully different zones (packages, plugins, apps, services), one flat instructions file is going to underperform. Split it. `AGENTS.md` is [also supported](https://github.blog/changelog/2025-08-28-copilot-coding-agent-now-supports-agents-md-custom-instructions/) if you prefer that convention.
 
@@ -73,16 +75,16 @@ That sounds backwards, because by default that is exactly what happens. Workspac
 - **`tools: ["read", "edit", "search"]`** — only the listed tools are available, by alias or name.
 - **`tools: ["read", "edit", "github/search-issues"]`** — same idea, but the namespace syntax (`server-name/tool`) lets you cherry-pick individual tools out of an MCP server instead of taking the whole bundle.
 
-So scoping is not required. But it is one of the cheapest ways to make the agent measurably better, and the framing shift is the point: **a tool list is itself a form of instruction**. A `docs-fixer` profile with `tools: ["read", "edit", "search"]` and no shell access is not just safer — it implicitly tells the agent _your job here is to read and edit, not to run_. The model plans inside that constraint. Focused profiles produced cleaner first-pass implementations for me than profiles with the full toolbox.
+So scoping is not required. But it is one of the cheapest ways to make the agent measurably better, because **a tool list is itself a form of instruction**. A `docs-fixer` profile with `tools: ["read", "edit", "search"]` and no shell access is not just safer — it implicitly tells the agent _your job here is to read and edit, not to run_. The model plans inside that constraint. For me, focused profiles produced cleaner first-pass implementations than profiles with the full toolbox.
 
-Two practical reasons reinforce this:
+Two more reasons to scope deliberately:
 
-- **MCP bleed-through.** Once MCP servers are configured at the repo level, omitting `tools` exposes every one of their tools to every agent profile. Scoping with the namespace syntax keeps MCP power without handing every agent every key.
+- **MCP bleed-through.** Once MCP servers are configured at the repo level, omitting `tools` exposes every one of their tools to every agent profile. The namespace syntax lets you keep MCP power without handing every agent every key.
 - **Reviewability.** An explicit tool list tells a future teammate exactly what an agent can do. An omitted property tells them to go enumerate MCP servers to find out.
 
-When I configured the profile deliberately, the quality jumped — because the agent stopped guessing at things it could have simply checked, and stopped reaching for tools it had no business using on this kind of issue.
+When I configured the profile deliberately, the quality jumped. The agent stopped guessing at things it could have simply checked, and stopped reaching for tools it had no business using on this kind of issue.
 
-My rule of thumb: **start with the default while you are learning what the agent needs**, then tighten as you see which tools actually show up in the session logs. Treat the tool list the same way you would treat IAM permissions — least privilege, deliberately granted, audited over time.
+My rule of thumb: **start with the default while you are learning what the agent needs**, then tighten as you see which tools actually show up in the session logs. Treat the tool list the way you would treat IAM permissions: least privilege, audited over time.
 
 ### 3. An environment that mirrors local dev
 
@@ -178,11 +180,11 @@ After proper configuration, the cycle is usually two to three iterations before 
 
 One pattern I did not expect: **the agent implementing something differently than I would is almost never a failure**. It is a forcing function.
 
-Two outcomes, both useful:
+Two outcomes.
 
 If the agent's approach is better than the one I had in mind, I explore it locally with AI assistance, and if it holds up, I propagate the pattern to similar places in the codebase. That has happened more than once.
 
-If the agent's approach is wrong, I codify the correct approach in the Copilot instructions or in docs the agent can read next time. I discard the output and implement it locally, but the wrong implementation has already paid for itself, because it just told me what to add to the instructions.
+If the agent's approach is wrong, I codify the correct approach in the Copilot instructions or in docs the agent can read next time. I discard the output and implement it locally, but the wrong implementation has already paid for itself — it just told me what to add to the instructions.
 
 That is a feedback loop in the opposite direction. The agent's mistakes improve the agent's future constraints.
 
@@ -194,13 +196,13 @@ After this setup, that cycle runs asynchronously. The time I reclaim goes into t
 
 The cloud agent scales implementation bandwidth. My local context stays reserved for judgment.
 
-That is what people mean, I think, when they say agents are going to reshape how engineers work. Not _"the agent replaces you"_, but _"the agent takes the part of the work that is mechanically verifiable, and you keep the part that is not"_. The hard configuration question is figuring out which is which — and you only figure that out by having a feedback loop strong enough to trust the agent's output without re-reading every line.
+I think that is what people actually mean when they say agents are going to reshape how engineers work. Not _"the agent replaces you"_, but _"the agent takes the part of the work that is mechanically verifiable, and you keep the part that is not"_. The hard configuration question is figuring out which is which — and you only figure that out once your feedback loop is strong enough to trust the agent's output without re-reading every line.
 
 ## One Honest Prerequisite
 
 None of this was zero effort. The environment setup was tractable because I already knew what a working project dev environment needed, how to configure private package registry access, and how devcontainers are shaped. Someone without that background would find the same task opaque.
 
-If that is you right now, that is fine — _this is the layer worth investing in_. Learning to configure agent environments is going to look, in a few years, the way learning Docker looked a decade ago. Boring, tedious, and the single biggest lever on whether your tools actually work.
+If that is you right now, that is fine — _this is the layer worth investing in_. Learning to configure agent environments is going to look, in a few years, the way learning Docker looked a decade ago. It is tedious. It is also the single biggest lever on whether your tools actually work.
 
 ## The One-Line Version
 

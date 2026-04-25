@@ -2,12 +2,12 @@
 export const prerender = true
 
 import { getEntryBySlug, getCollection } from "astro:content";
-import PostLayout from '$/layouts/post.astro';
+import PostLayout from '../../layouts/post.astro';
 import Code from '../../components/Code.astro'
 
 export async function getStaticPaths() {
     const allPosts = await getCollection('blog');
-    return allPosts.map(post => ({
+    return allPosts.map((post: (typeof allPosts)[number]) => ({
         params: {
             slug: post.slug
         }
@@ -22,6 +22,6 @@ const { Content } = await entry.render()
 ---
 <PostLayout meta={{id, collection, slug }} content={data} >
     <Content components={{
-        code: Code
+        pre: Code
     }}/>
 </PostLayout>

@@ -1,15 +1,14 @@
 ---
-import "@fontsource/fira-sans";
 import { ViewTransitions } from 'astro:transitions';
 import { SITE } from "$/config";
 import { assetBase } from "$/utils/path";
 import "../styles/global.css";
 
 export type Props = {
-  title: string;
-  description: string;
-  permalink: string;
-  image: string;
+  title?: string;
+  description?: string;
+  permalink?: string;
+  image?: string;
 };
 
 const { title = SITE.title, description, permalink, image } = Astro.props;

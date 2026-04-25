@@ -1,3 +1,5 @@
+@import "@fontsource/fira-sans";
+
 @tailwind base;
 /* https://github.com/tailwindlabs/tailwindcss/discussions/2917 */
 @layer base {
@@ -39,6 +41,15 @@
 }
 .remark-code-title {
 	@apply inline-block relative top-4 px-2 pt-1 pb-5 text-sm text-theme-primary dark:text-theme-dark-primary bg-gradient-to-br from-theme-primary/30 dark:from-theme-dark-primary/30 to-theme-dark-primary/30 dark:to-theme-primary/30 rounded-t-md shadow-sm;
+}
+
+.prose :not(pre) > code {
+	@apply font-mono rounded-md bg-theme-primary/10 dark:bg-theme-dark-primary/20 px-1.5 py-0.5 text-[0.85em] font-medium text-theme-primary dark:text-theme-dark-primary;
+}
+
+.prose :not(pre) > code::before,
+.prose :not(pre) > code::after {
+	content: "";
 }
 
 /** Shiki theme - Light/Dark mode **/

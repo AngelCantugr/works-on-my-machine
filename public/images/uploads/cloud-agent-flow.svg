@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 860" role="img" aria-labelledby="title desc">
+  <title id="title">GitHub Copilot cloud agent flow with plan, read, edit, and hook checkpoints</title>
+  <desc id="desc">A high-level diagram showing how the cloud agent runs: copilot-setup-steps.yml provisions the environment, then the agent enters a development loop. The agent plans, preToolUse gates the upcoming tool call, then the agent can take either a read or edit action. postToolUse can run after any completed tool, but the example validation script only acts on file mutations like edit or create. The result feeds back into planning. If preToolUse denies the action, the agent loops back to plan. When the work is complete, the agent pushes a branch and opens a PR.</desc>
+
+  <style>
+    /* Light-mode defaults */
+    text { font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    .title { font-size: 18px; font-weight: 600; fill: #0f172a; }
+    .subtitle { font-size: 12px; fill: #64748b; }
+    .box { fill: #ffffff; stroke: #475569; stroke-width: 1.5; }
+    .box-text { font-size: 14px; fill: #0f172a; font-weight: 500; }
+    .box-sub { font-size: 11px; fill: #475569; }
+    .accent-box { fill: #f3e8ff; stroke: #7c3aed; stroke-width: 2; }
+    .accent-text { font-size: 14px; fill: #581c87; font-weight: 600; }
+    .accent-sub { font-size: 11px; fill: #6b21a8; }
+    .post-box { fill: #fff7ed; stroke: #ea580c; stroke-width: 2; }
+    .post-text { font-size: 13px; fill: #9a3412; font-weight: 600; }
+    .post-sub { font-size: 11px; fill: #c2410c; }
+    .env-box { fill: #ecfeff; stroke: #0891b2; stroke-width: 2; }
+    .env-text { font-size: 14px; fill: #155e75; font-weight: 600; }
+    .env-sub { font-size: 11px; fill: #0e7490; }
+    .loop-bg { fill: #f8fafc; stroke: #cbd5e1; stroke-width: 1; stroke-dasharray: 4 3; }
+    .loop-label { font-size: 11px; fill: #64748b; font-weight: 600; letter-spacing: 0.08em; }
+    .arrow { stroke: #475569; stroke-width: 1.5; fill: none; }
+    .arrow-deny { stroke: #b91c1c; stroke-width: 1.5; fill: none; stroke-dasharray: 5 3; }
+    .arrow-allow { stroke: #047857; stroke-width: 1.5; fill: none; }
+    .edge-label { font-size: 11px; fill: #475569; font-weight: 500; }
+    .deny-label { font-size: 11px; fill: #b91c1c; font-weight: 600; }
+    .allow-label { font-size: 11px; fill: #047857; font-weight: 600; }
+    .callout { font-size: 11px; fill: #475569; font-style: italic; }
+    .callout-strong { font-size: 12px; fill: #0f172a; font-weight: 600; }
+
+    /* Dark-mode overrides (matches OS preference) */
+    @media (prefers-color-scheme: dark) {
+      .title { fill: #f1f5f9; }
+      .subtitle { fill: #94a3b8; }
+      .box { fill: #1e293b; stroke: #94a3b8; }
+      .box-text { fill: #f1f5f9; }
+      .box-sub { fill: #cbd5e1; }
+      .accent-box { fill: #3b0764; stroke: #c084fc; }
+      .accent-text { fill: #f3e8ff; }
+      .accent-sub { fill: #e9d5ff; }
+      .post-box { fill: #431407; stroke: #fb923c; }
+      .post-text { fill: #ffedd5; }
+      .post-sub { fill: #fdba74; }
+      .env-box { fill: #083344; stroke: #67e8f9; }
+      .env-text { fill: #cffafe; }
+      .env-sub { fill: #a5f3fc; }
+      .loop-bg { fill: #0f172a; stroke: #475569; }
+      .loop-label { fill: #94a3b8; }
+      .arrow { stroke: #cbd5e1; }
+      .arrow-deny { stroke: #f87171; }
+      .arrow-allow { stroke: #34d399; }
+      .edge-label { fill: #cbd5e1; }
+      .deny-label { fill: #f87171; }
+      .allow-label { fill: #34d399; }
+      .callout { fill: #cbd5e1; }
+      .callout-strong { fill: #f1f5f9; }
+    }
+  </style>
+
+  <!-- Arrow markers -->
+  <defs>
+    <marker id="arrowhead" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#475569"/>
+    </marker>
+    <marker id="arrowhead-deny" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#b91c1c"/>
+    </marker>
+    <marker id="arrowhead-allow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#047857"/>
+    </marker>
+  </defs>
+
+  <!-- Title -->
+  <text x="410" y="32" text-anchor="middle" class="title">GitHub Copilot Cloud Agent — How env and hooks shape the dev loop</text>
+  <text x="410" y="52" text-anchor="middle" class="subtitle">Setup runs once. preToolUse gates read/edit calls; postToolUse runs after both.</text>
+
+  <!-- 1. Issue assigned -->
+  <rect x="310" y="78" width="200" height="44" rx="6" class="box"/>
+  <text x="410" y="98" text-anchor="middle" class="box-text">Issue assigned to agent</text>
+  <text x="410" y="114" text-anchor="middle" class="box-sub">via @github-copilot, label, or chat</text>
+
+  <line x1="410" y1="122" x2="410" y2="148" class="arrow" marker-end="url(#arrowhead)"/>
+
+  <!-- 2. Environment phase (ENV) -->
+  <rect x="270" y="148" width="280" height="62" rx="6" class="env-box"/>
+  <text x="410" y="170" text-anchor="middle" class="env-text">copilot-setup-steps.yml runs</text>
+  <text x="410" y="187" text-anchor="middle" class="env-sub">install deps · expose tokens · prep tools</text>
+  <text x="410" y="201" text-anchor="middle" class="env-sub">(Actions-powered ephemeral env)</text>
+
+  <!-- ENV side annotation -->
+  <line x1="555" y1="179" x2="635" y2="179" class="arrow" marker-end="url(#arrowhead)"/>
+  <text x="640" y="172" class="callout-strong">ENV</text>
+  <text x="640" y="186" class="callout">shapes WHAT</text>
+  <text x="640" y="200" class="callout">the agent CAN do</text>
+
+  <line x1="410" y1="210" x2="410" y2="236" class="arrow" marker-end="url(#arrowhead)"/>
+
+  <!-- 3. Agent reads context -->
+  <rect x="290" y="236" width="240" height="56" rx="6" class="box"/>
+  <text x="410" y="258" text-anchor="middle" class="box-text">Agent reads context</text>
+  <text x="410" y="276" text-anchor="middle" class="box-sub">instructions · custom agent profile · issue body</text>
+
+  <line x1="410" y1="292" x2="410" y2="320" class="arrow" marker-end="url(#arrowhead)"/>
+
+  <!-- 4. Loop background + label -->
+  <rect x="95" y="320" width="630" height="430" rx="10" class="loop-bg"/>
+  <text x="140" y="340" class="loop-label">THE INNER LOOP — plan, then read or edit, then hook feedback</text>
+
+  <!-- 4a. Plan -->
+  <rect x="310" y="356" width="200" height="44" rx="6" class="box"/>
+  <text x="410" y="376" text-anchor="middle" class="box-text">Plan next step</text>
+  <text x="410" y="391" text-anchor="middle" class="box-sub">decide whether to read or edit</text>
+
+  <line x1="410" y1="400" x2="410" y2="426" class="arrow" marker-end="url(#arrowhead)"/>
+
+  <!-- 4b. preToolUse hook gate -->
+  <rect x="250" y="430" width="320" height="56" rx="6" class="accent-box"/>
+  <text x="410" y="448" text-anchor="middle" class="accent-text">preToolUse hook fires</text>
+  <text x="410" y="466" text-anchor="middle" class="accent-sub">can deny the next read or edit tool call</text>
+
+  <line x1="360" y1="486" x2="275" y2="540" class="arrow-allow" marker-end="url(#arrowhead-allow)"/>
+  <line x1="460" y1="486" x2="532" y2="540" class="arrow-allow" marker-end="url(#arrowhead-allow)"/>
+  <text x="300" y="514" class="allow-label">allow read</text>
+  <text x="492" y="514" class="allow-label">allow edit</text>
+
+  <!-- 4c. Read -->
+  <rect x="155" y="540" width="205" height="56" rx="6" class="box"/>
+  <text x="257" y="563" text-anchor="middle" class="box-text">Read</text>
+  <text x="257" y="581" text-anchor="middle" class="box-sub">files, issue, instructions</text>
+
+  <!-- 4d. Edit -->
+  <rect x="430" y="540" width="205" height="56" rx="6" class="box"/>
+  <text x="532" y="563" text-anchor="middle" class="box-text">Edit</text>
+  <text x="532" y="581" text-anchor="middle" class="box-sub">create or modify files</text>
+
+  <!-- HOOKS side annotation -->
+  <line x1="570" y1="458" x2="660" y2="458" class="arrow" marker-end="url(#arrowhead)"/>
+  <text x="665" y="451" class="callout-strong">HOOKS</text>
+  <text x="665" y="465" class="callout">shape HOW</text>
+  <text x="665" y="479" class="callout">the loop is gated</text>
+
+  <!-- 4e. postToolUse can run after read or edit -->
+  <line x1="257" y1="596" x2="320" y2="626" class="arrow" marker-end="url(#arrowhead)"/>
+  <line x1="532" y1="596" x2="500" y2="626" class="arrow" marker-end="url(#arrowhead)"/>
+  <rect x="245" y="626" width="330" height="80" rx="6" class="post-box"/>
+  <text x="410" y="652" text-anchor="middle" class="post-text">postToolUse</text>
+  <text x="410" y="672" text-anchor="middle" class="post-sub">fires after any completed tool</text>
+  <text x="410" y="690" text-anchor="middle" class="post-sub">example script exits early unless toolName is edit/create</text>
+
+  <!-- Result feedback arrow: from edit/validation back up to planning -->
+  <path d="M 245 666 L 138 666 L 138 378 L 310 378" class="arrow" marker-end="url(#arrowhead)"/>
+  <text x="126" y="536" text-anchor="end" class="edge-label">read or edit</text>
+  <text x="126" y="550" text-anchor="end" class="edge-label">feedback</text>
+
+  <!-- DENY path: from hook back up to plan with deny+reason -->
+  <path d="M 250 458 L 178 458 L 178 378 L 310 378" class="arrow-deny" marker-end="url(#arrowhead-deny)"/>
+  <text x="190" y="436" class="deny-label">deny</text>
+  <text x="190" y="450" class="deny-label">+ reason</text>
+
+  <!-- Exit arrow from loop -->
+  <line x1="410" y1="750" x2="410" y2="778" class="arrow" marker-end="url(#arrowhead)"/>
+  <text x="420" y="770" class="edge-label">all gates clear · work complete</text>
+
+  <!-- 5. Branch + PR -->
+  <rect x="290" y="778" width="240" height="44" rx="6" class="box"/>
+  <text x="410" y="798" text-anchor="middle" class="box-text">Branch pushed · PR opened</text>
+  <text x="410" y="814" text-anchor="middle" class="box-sub">links to session log via Agent-Logs-Url trailer</text>
+
+  <line x1="410" y1="822" x2="410" y2="840" class="arrow" marker-end="url(#arrowhead)"/>
+  <text x="410" y="856" text-anchor="middle" class="box-sub">Human review</text>
+</svg>

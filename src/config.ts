@@ -27,7 +27,7 @@ export const SITE = {
   // Your site's detail?
   name: "Works On My Machine",
   title: "Works On My Machine",
-  description: "A tech blog to share what I know, learn, and experiment with",
+  description: "Notes from inside developer platforms. IDP, CI/CD, DX, and the gaps between them.",
   url: "https://blog.angelcantugr.dev",
   githubUrl: "https://github.com/AngelCantugr",
   linkedinUrl: "https://www.linkedin.com/in/angelcantugr",
@@ -43,7 +43,7 @@ export const SITE = {
   // Author: Image external source
   authorImage: "", // Example: https://pbs.twimg.com/profile_images/1272979356529221632/sxvncugt_400x400.jpg, https://abs.twimg.com/sticky/default_profile_images/default_profile_normal.png
   // Author: Bio
-  authorBio: "A tech blog to share what I know, learn, and experiment with.",
+  authorBio: "Notes from inside developer platforms. IDP, CI/CD, DX, and the gaps between them.",
 };
 
 // Ink - Theme configuration
